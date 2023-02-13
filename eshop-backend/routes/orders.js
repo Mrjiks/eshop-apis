@@ -5,7 +5,6 @@ import { OrderItem } from "../models/order-item.js";
 const router = express.Router();
 
 //? APIs Endpoints
-
 //!-----Get all orders api------
 router.get(`/`, async (req, res) => {
   const orderList = await Order.find().populate("user", "name").sort({ dateOrdered: -1 });
@@ -30,7 +29,7 @@ router.get(`/:id`, async (req, res) => {
     });
 
   if (!order) {
-    res.status(500).json({ success: false });
+    res.status(500).json({ success: false, message: "Order does not exist" });
   }
   res.send(order);
 });
@@ -55,15 +54,15 @@ router.post("/", async (req, res) => {
   const orderItemsIdsResolved = await orderItemsIds;
 
   // Calculates orders based on the orderItems Ids
-  // const totalPrices = await Promise.all(
-  //   orderItemsIdsResolved.map(async (orderItemId) => {
-  //     const orderItem = await OrderItem.findById(orderItemId).populate("product", "price");
-  //     const totalPrice = orderItem.product.price * orderItem.quantity;
-  //     return totalPrice;
-  //   })
-  // );
+  const totalPrices = await Promise.all(
+    orderItemsIdsResolved.map(async (orderItemId) => {
+      const orderItem = await OrderItem.findById(orderItemId).populate("product", "price");
+      const totalPrice = orderItem.product.price * orderItem.quantity;
+      return totalPrice;
+    })
+  );
 
-  // const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
+  const totalPrice = totalPrices.reduce((a, b) => a + b, 0);
 
   let order = new Order({
     orderItems: orderItemsIdsResolved,
@@ -74,7 +73,7 @@ router.post("/", async (req, res) => {
     country: req.body.country,
     phone: req.body.phone,
     status: req.body.status,
-    // totalPrice: totalPrice,
+    totalPrice: totalPrice,
     user: req.body.user,
   });
   order = await order.save();
@@ -82,6 +81,73 @@ router.post("/", async (req, res) => {
   if (!order) return res.status(400).send("the order cannot be created!");
 
   res.send(order);
+});
+
+//! Update order
+router.put("/:id", async (req, res) => {
+  try {
+    const updateOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: req.body.status,
+      },
+      { new: true }
+    );
+    res.status(201).json(updateOrder);
+  } catch (error) {
+    res.status(400).json({
+      message: error.message,
+    });
+  }
+});
+
+//! Delete order
+router.delete("/:id", (req, res) => {
+  Order.findByIdAndRemove(req.params.id)
+    .then(async (order) => {
+      if (order) {
+        await order.orderItems.map(async (orderItem) => {
+          await OrderItem.findByIdAndRemove(orderItem);
+        });
+        return res.status(200).json({ success: true, message: "the order is deleted!" });
+      } else {
+        return res.status(404).json({ success: false, message: "order not found!" });
+      }
+    })
+    .catch((err) => {
+      return res.status(500).json({ success: false, error: err });
+    });
+});
+
+//! Order Stats
+
+router.get("/get/totalsales", async (req, res) => {
+  try {
+    const totalSales = await Order.aggregate([
+      { $group: { _id: null, totalsales: { $sum: "$totalPrice" } } },
+    ]);
+    res.json({
+      totalSale: totalSales.pop().totalsales,
+    });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Order total sales cannot be computed" });
+  }
+});
+
+//! Order count stats
+router.get("/get/count", async (req, res) => {
+  try {
+    const orderCount = await Order.countDocuments((count) => count);
+    res.json({
+      OrderCount: orderCount,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message,
+    });
+  }
 });
 
 export default router;
