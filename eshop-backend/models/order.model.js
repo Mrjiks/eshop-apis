@@ -49,6 +49,7 @@ const orderSchema = new mongoose.Schema({
   },
 });
 
+// change the generated _id to id
 orderSchema.virtual("id").get(function () {
   return this._id.toHexString();
 });

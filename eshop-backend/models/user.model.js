@@ -47,6 +47,7 @@ userSchema.virtual("id").get(function () {
   return this._id.toHexString();
 });
 
+// change the generated _id to id
 userSchema.set("toJSON", {
   virtuals: true,
 });

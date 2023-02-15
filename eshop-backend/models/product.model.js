@@ -30,8 +30,9 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
-  // Joining Product table and Category table: ObjectId is from Schema table
+
   category: {
+    // Joining Product table and Category table: ObjectId is from Schema table
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category", //links to Category schema (table)
     required: true,
@@ -59,6 +60,8 @@ const productSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+// change the generated _id to id
 productSchema.virtual("id").get(function () {
   return this._id.toHexString();
 });

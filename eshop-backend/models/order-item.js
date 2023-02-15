@@ -6,6 +6,7 @@ const orderItemSchema = new mongoose.Schema({
     required: true,
   },
   product: {
+    //linking to the Product table (collection)
     type: mongoose.Types.ObjectId,
     ref: "Product",
   },

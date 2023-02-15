@@ -3,7 +3,9 @@ import express from "express";
 
 const router = express.Router();
 
-// Get all categories
+//! CATEGORY API endpoints
+
+//? Get all categories
 router.get(`/`, async (req, res) => {
   const categoryList = await Category.find();
 
@@ -13,7 +15,7 @@ router.get(`/`, async (req, res) => {
   res.status(200).send(categoryList);
 });
 
-// Get one category
+//? Get one category
 router.get("/:id", async (req, res) => {
   const category = await Category.findById(req.params.id);
 
@@ -26,7 +28,7 @@ router.get("/:id", async (req, res) => {
   res.status(200).send(category);
 });
 
-// Post category
+//? Post category
 router.post("/", async (req, res) => {
   let category = new Category({
     name: req.body.name,
@@ -42,7 +44,7 @@ router.post("/", async (req, res) => {
     });
   }
 });
-// Update category
+//? Update category
 router.put("/:id", async (req, res) => {
   try {
     const updatedCategory = await Category.findByIdAndUpdate(
@@ -62,7 +64,7 @@ router.put("/:id", async (req, res) => {
   }
 });
 
-// Delete category
+//? Delete category
 router.delete("/:id", (req, res) => {
   Category.findByIdAndRemove(req.params.id)
     .then((category) => {
