@@ -54,6 +54,6 @@ app.use(`${api}/users`, usersRoutes);
 app.use(`${api}/orders`, ordersRoutes);
 
 //Server
-app.listen(process.env.PORT || 3000, () => {
-  console.log("server is running http://localhost:3000");
+app.listen(process.env.PORT || 5000, () => {
+  console.log("server is running http://localhost:5000");
 });
